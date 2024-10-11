@@ -1,5 +1,4 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
 import { LoginPayload } from './dto/login.payload';
 import { RegisterPayload } from './dto/register.payload';
@@ -12,7 +11,7 @@ import { IRequest } from '../../common/helper/common-types';
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly usersService: UsersService,
+    private readonly usersService: any,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService<EnvConfig>,
   ) {}

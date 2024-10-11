@@ -1,20 +1,18 @@
 import { Request } from 'express';
-import { TUser } from '../../modules/users/user.model';
 import { ApiProperty, getSchemaPath } from '@nestjs/swagger';
 import { InferSubjects } from '@casl/ability';
-import { ObjectId } from 'mongoose';
 
 export interface queryObj {
   regular: {
     [field: string]: {
-      [operator: string]: string | string[] | number | ObjectId[];
+      [operator: string]: string | string[] | number | [];
     };
   };
   references: {
     [reference: string]: {
       paths: Array<string>;
       value: {
-        [operator: string]: string | string[] | number | ObjectId[];
+        [operator: string]: string | string[] | number | [];
       };
     };
   };
@@ -22,7 +20,7 @@ export interface queryObj {
 
 export interface IRequest extends Request {
   queryObj: queryObj;
-  user: TUser;
+  user: any;
   pagination: {
     limit: number;
     page: number;
@@ -83,7 +81,11 @@ export interface IQuery {
   sortBy: string;
 }
 
-export type Subjects = InferSubjects<typeof TUser | 'all'>;
+class User {
+  id: number;
+}
+
+export type Subjects = InferSubjects<typeof User | 'all'>; //update this
 
 export enum Action {
   Manage = 'manage',

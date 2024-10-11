@@ -8,7 +8,6 @@ import { Reflector } from '@nestjs/core';
 import { CaslAbilityFactory } from '../../modules/casl/casl-ability.factory/casl-ability.factory';
 import { RequiredRule } from '../helper/common-types';
 import { CHECK_ABILITY } from '../decorators/abilities.decorator';
-import { TUser } from '../../modules/users/user.model';
 import { ForbiddenError } from '@casl/ability';
 
 @Injectable()
@@ -23,7 +22,7 @@ export class AbilitiesGuard implements CanActivate {
       this.reflector.get<RequiredRule[]>(CHECK_ABILITY, context.getHandler()) ||
       [];
 
-    const { user }: { user: TUser } = context.switchToHttp().getRequest();
+    const { user }: { user: any } = context.switchToHttp().getRequest();
 
     const ability = this.caslAbilityFactory.defineAbility(user);
 

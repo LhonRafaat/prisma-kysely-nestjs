@@ -4,7 +4,6 @@ import {
   MongoAbility,
   createMongoAbility,
 } from '@casl/ability';
-import { TUser } from '../../users/user.model';
 import { Injectable } from '@nestjs/common';
 import { Action, Subjects } from '../../../common/helper/common-types';
 
@@ -12,7 +11,7 @@ export type AppAbility = MongoAbility<[Action, Subjects]>; // create new AppAbil
 
 @Injectable()
 export class CaslAbilityFactory {
-  defineAbility(user: TUser) {
+  defineAbility(user: any) {
     const builder = new AbilityBuilder<AppAbility>(createMongoAbility);
 
     if (user?.isAdmin) builder.can(Action.Manage, 'all');

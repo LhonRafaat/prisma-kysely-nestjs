@@ -1,11 +1,9 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UsersModule } from './modules/users/users.module';
 import { QueryMiddleware } from './common/helper/query-middleware';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as Joi from 'joi';
-import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './modules/auth/auth.module';
 import { CaslModule } from './modules/casl/casl.module';
 import { EnvConfig } from './config.type';
@@ -27,14 +25,6 @@ import { EnvConfig } from './config.type';
         GOOGLE_CALLBACK_URL: Joi.string().optional(),
       }),
     }),
-    MongooseModule.forRootAsync({
-      inject: [ConfigService<EnvConfig>],
-      useFactory: (configService: ConfigService<EnvConfig>) => ({
-        uri: configService.get('DB_URL'),
-      }),
-    }),
-
-    UsersModule,
     AuthModule,
     CaslModule,
   ],
