@@ -7,6 +7,7 @@ import * as Joi from 'joi';
 import { AuthModule } from './modules/auth/auth.module';
 import { CaslModule } from './modules/casl/casl.module';
 import { EnvConfig } from './config.type';
+import { DbModule } from './db/db.module';
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { EnvConfig } from './config.type';
 
       validationSchema: Joi.object({
         PORT: Joi.number().default(3000),
-        DB_URL: Joi.string().required(),
+        DATABASE_URL: Joi.string().required(),
         ACCESS_SECRET: Joi.string().required(),
         REFRESH_SECRET: Joi.string().required(),
         ACCESS_TOKEN_EXPIRATION: Joi.string().required(),
@@ -27,6 +28,7 @@ import { EnvConfig } from './config.type';
     }),
     AuthModule,
     CaslModule,
+    DbModule,
   ],
   controllers: [AppController],
   providers: [AppService],
