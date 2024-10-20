@@ -6,8 +6,8 @@ import {
   KYSELY_DB_OPTIONS,
 } from './kysely/kysely.module-definition';
 import { KyselyDBOptions } from './kysely/kysely-db.options';
-import { PostgresDialect } from 'kysely';
-import { Pool } from 'pg';
+import { MysqlDialect } from 'kysely';
+import { createPool } from 'mysql2';
 
 @Global()
 @Module({
@@ -17,9 +17,9 @@ import { Pool } from 'pg';
       provide: KyselyDB,
       inject: [KYSELY_DB_OPTIONS],
       useFactory: (kyselyDBOptions: KyselyDBOptions) => {
-        const dialect = new PostgresDialect({
-          pool: new Pool({
-            connectionString: kyselyDBOptions.connectionString,
+        const dialect = new MysqlDialect({
+          pool: createPool({
+            uri: kyselyDBOptions.connectionString,
           }),
         });
 
