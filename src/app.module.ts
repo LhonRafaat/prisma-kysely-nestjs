@@ -8,6 +8,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { CaslModule } from './modules/casl/casl.module';
 import { EnvConfig } from './config.type';
 import { DBModule } from './db/db.module';
+import { UserModule } from './modules/user/user.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { DBModule } from './db/db.module';
         connectionString: configService.get('DATABASE_URL'),
       }),
     }),
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],
