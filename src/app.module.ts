@@ -7,7 +7,7 @@ import * as Joi from 'joi';
 import { AuthModule } from './modules/auth/auth.module';
 import { CaslModule } from './modules/casl/casl.module';
 import { EnvConfig } from './config.type';
-import { DbModule } from './db/db.module';
+import { DBModule } from './db/db.module';
 
 @Module({
   imports: [
@@ -28,7 +28,13 @@ import { DbModule } from './db/db.module';
     }),
     AuthModule,
     CaslModule,
-    DbModule,
+    DBModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService<EnvConfig>) => ({
+        connectionString: configService.get('DATABASE_URL'),
+      }),
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],
