@@ -44,8 +44,27 @@ export class UserService {
       .executeTakeFirst();
   }
 
-  findAll() {
-    return `This action returns all user`;
+  async findAll(): Promise<TUser[]> {
+    const query = this.kysely
+      .selectFrom('users')
+      .selectAll('users')
+      .innerJoin('user_role', 'user_role.user_id', 'users.id')
+      .select(({ eb }) => [
+        eb.fn.agg<string>('group_concat', ['user_role.role']).as('roles'),
+      ])
+      .groupBy('users.id');
+
+    const users = await query.execute();
+    return users.map((user) => {
+      return new TUser({
+        id: user.id,
+        email: user.email,
+        password: user.password,
+        roles: user.roles.split(','),
+        name: user.name,
+        refresh_token: user.refresh_token,
+      });
+    });
   }
 
   async findByEmail(email: string): Promise<TUser> {
@@ -63,6 +82,7 @@ export class UserService {
       ])
       .groupBy('users.id');
     const result = await query.executeTakeFirst();
+
     return new TUser({
       id: result.id,
       email: result.email,
@@ -77,7 +97,7 @@ export class UserService {
     const query = await this.kysely
       .selectFrom('users')
       .innerJoin('user_role', 'user_role.user_id', 'users.id')
-      .where('id', '=', id)
+      .where('users.id', '=', id)
       .selectAll('users')
       .select(({ eb }) => [
         eb.fn.agg<string>('group_concat', ['user_role.role']).as('roles'),
