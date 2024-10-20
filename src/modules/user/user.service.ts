@@ -1,20 +1,46 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { KyselyDB } from '../../db/kysely/kysely.service';
 import { TUser } from './model/user.model';
 import * as bcrypt from 'bcrypt';
+import { OAuthRegisterDto } from '../auth/dto/oauth-register.dto';
+import { RegisterDto } from '../auth/dto/register.dto';
 
 @Injectable()
 export class UserService {
   constructor(private readonly kysely: KyselyDB) {}
-  async create(createUserDto: CreateUserDto) {
+  async create(createUserDto: RegisterDto) {
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
 
+    const result = await this.kysely.transaction().execute(async (tx) => {
+      const user = await tx
+        .insertInto('users')
+        .values({
+          email: createUserDto.email,
+          password: hashedPassword,
+          name: createUserDto.name,
+        })
+        .executeTakeFirstOrThrow();
+
+      await tx
+        .insertInto('user_role')
+        .values(
+          createUserDto.roles.map((role) => ({ user_id: user.insertId, role })),
+        )
+        .execute();
+
+      return user;
+    });
+
+    const user = await this.findOne(result.insertId as unknown as number);
+
+    return user;
+  }
+
+  async createWithProvider(payload: OAuthRegisterDto) {
     return await this.kysely
       .insertInto('users')
-      .values({ ...createUserDto, password: hashedPassword })
-      .returning(['id', 'email', 'password', 'name'])
+      .values(payload)
       .executeTakeFirst();
   }
 
@@ -26,26 +52,47 @@ export class UserService {
     const query = this.kysely
       .selectFrom('users')
       .where('email', '=', email)
-      .leftJoin('user_role', 'users.id', 'user_role.user_id')
+      .innerJoin('user_role', 'users.id', 'user_role.user_id')
       .select(({ eb }) => [
         'email',
         'users.id as id',
         'password',
         'name',
-        'role',
-      ]);
+        'refresh_token',
+        eb.fn.agg<string>('group_concat', ['user_role.role']).as('roles'),
+      ])
+      .groupBy('users.id');
     const result = await query.executeTakeFirst();
     return new TUser({
       id: result.id,
       email: result.email,
-      password: '',
-      roles: [result.role.toString()],
+      password: result.password,
+      roles: result.roles.split(','),
       name: result.name,
+      refresh_token: result.refresh_token,
     });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: number) {
+    const query = await this.kysely
+      .selectFrom('users')
+      .innerJoin('user_role', 'user_role.user_id', 'users.id')
+      .where('id', '=', id)
+      .selectAll('users')
+      .select(({ eb }) => [
+        eb.fn.agg<string>('group_concat', ['user_role.role']).as('roles'),
+      ])
+      .groupBy('users.id')
+      .executeTakeFirst();
+
+    return new TUser({
+      id: query.id,
+      email: query.email,
+      password: query.password,
+      roles: query.roles.split(','),
+      name: query.name,
+      refresh_token: query.refresh_token,
+    });
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
