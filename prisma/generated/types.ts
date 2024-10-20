@@ -16,6 +16,7 @@ export type User = {
   id: Generated<number>;
   email: string;
   name: string | null;
+  refresh_token: string | null;
 };
 export type DB = {
   posts: Post;

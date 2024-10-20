@@ -7,5 +7,7 @@ export class User {
 
   name?: string;
 
+  refresh_token?: string;
+
   posts: Post[];
 }
