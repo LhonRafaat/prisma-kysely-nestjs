@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,9 +5,10 @@ generator client {
 
 generator prismaClassGenerator {
     provider = "prisma-class-generator"
-    output = "../src/types"
+    output = "../generated-types"
     useSwagger = false
     dryRun = false
+    makeIndexFile = false
 }
 
 generator kysely {
@@ -29,22 +24,33 @@ datasource db {
 
 
 
-model Post {
-  id        Int     @id @default(autoincrement())
-  title     String
-  content   String?
-  published Boolean @default(false)
-  author    User   @relation(fields: [authorId], references: [id])
-  authorId  Int    @map("author_id")
-  @@map("posts")
+
+
+enum Role {
+  USER
+  ADMIN
+  MODERATOR
+  GUEST
 }
 
 model User {
   id    Int     @id @default(autoincrement())
   email String  @unique
+  password  String
+  roles UserRole[]    
   name  String?
   refresh_token  String?   
-  posts Post[]
   @@map("users")
 
+}
+
+model UserRole {
+  id     Int  @id @default(autoincrement())
+  userId Int  @map("user_id")
+  role   Role
+
+  user   User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, role])
+  @@map("user_role")
 }
