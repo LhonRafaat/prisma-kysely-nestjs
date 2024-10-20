@@ -7,9 +7,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { LoginPayload } from './dto/login.payload';
 import { AuthService } from './auth.service';
-import { RegisterPayload } from './dto/register.payload';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { TAuthResponse } from './types/auth.response';
 import { IRequest } from '../../common/helper/common-types';
@@ -17,6 +15,8 @@ import { AccessTokenGuard } from '../../common/guards/jwt.guard';
 import { RefreshTokenGuard } from '../../common/guards/refresh.guard';
 import { GoogleAuthGuard } from '../../common/guards/google.guard';
 import { Response } from 'express';
+import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -29,7 +29,7 @@ export class AuthController {
     type: TAuthResponse,
   })
   async login(
-    @Body() payload: LoginPayload,
+    @Body() payload: LoginDto,
     @Res() res: Response,
   ): Promise<Response> {
     const authRes = await this.authService.validateUser(payload);
@@ -42,7 +42,7 @@ export class AuthController {
     type: TAuthResponse,
   })
   async register(
-    @Body() payload: RegisterPayload,
+    @Body() payload: RegisterDto,
     @Res() res: Response,
   ): Promise<Response> {
     const authRes = await this.authService.register(payload);
