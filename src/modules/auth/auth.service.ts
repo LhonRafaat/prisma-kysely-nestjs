@@ -10,8 +10,9 @@ import { IRequest } from '../../common/helper/common-types';
 
 @Injectable()
 export class AuthService {
+  private readonly usersService: any;
+
   constructor(
-    private readonly usersService: any,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService<EnvConfig>,
   ) {}

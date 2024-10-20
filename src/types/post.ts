@@ -9,7 +9,7 @@ export class Post {
 
   published: boolean;
 
-  author?: User;
+  author: User;
 
-  authorId?: number;
+  authorId: number;
 }

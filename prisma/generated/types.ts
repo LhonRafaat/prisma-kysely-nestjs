@@ -9,8 +9,8 @@ export type Post = {
   id: Generated<number>;
   title: string;
   content: string | null;
-  published: Generated<boolean>;
-  authorId: number | null;
+  published: Generated<number>;
+  author_id: number;
 };
 export type User = {
   id: Generated<number>;
@@ -18,6 +18,6 @@ export type User = {
   name: string | null;
 };
 export type DB = {
-  Post: Post;
-  User: User;
+  posts: Post;
+  users: User;
 };
