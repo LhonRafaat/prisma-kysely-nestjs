@@ -20,7 +20,6 @@ export class AuthService {
   async validateUser(payload: LoginDto): Promise<TAuthResponse> {
     const user = await this.userService.findByEmail(payload.email);
     if (user) {
-      console.log(user);
       const isMatch = await bcrypt.compare(payload.password, user.password);
       if (isMatch) {
         const tokens = await this.getTokens({
@@ -50,20 +49,20 @@ export class AuthService {
   }
 
   async handleGoogleCallback(req: IRequest): Promise<TAuthResponse> {
-    let user = await this.userService.findByEmail(req.user.email);
+    const user = await this.userService.findByEmail(req.user.email);
 
-    if (!user) {
-      const result = await this.userService.createWithProvider(
-        req.user as Omit<RegisterDto, 'password' | 'isAdmin'> & {
-          oauthProvider: string;
-          oauthProviderId: string;
-          roles: string[];
-        },
-      );
-      user = await this.userService.findOne(
-        result.insertId as unknown as number,
-      );
-    }
+    // if (!user) {
+    //   const result = await this.userService.createWithProvider(
+    //     req.user as Omit<RegisterDto, 'password' | 'isAdmin'> & {
+    //       oauthProvider: string;
+    //       oauthProviderId: string;
+    //       roles: string[];
+    //     },
+    //   );
+    //   user = await this.userService.findOne(
+    //     result.insertId as unknown as number,
+    //   );
+    // }
 
     const tokens = await this.getTokens({
       id: user.id,

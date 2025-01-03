@@ -71,7 +71,7 @@ export class AuthController {
   @UseGuards(AccessTokenGuard)
   @Post('logout')
   async logout(@Req() req: IRequest) {
-    await this.authService.logout(req.user._id);
+    await this.authService.logout(req.user.id);
   }
 
   @UseGuards(RefreshTokenGuard)
@@ -80,7 +80,7 @@ export class AuthController {
     @Req() req: IRequest,
     @Res() res: Response,
   ): Promise<Response> {
-    const authRes = await this.authService.refreshTokens(req.user._id);
+    const authRes = await this.authService.refreshTokens(req.user.id);
 
     this.setCookies(res, authRes.accessToken, authRes.refreshToken);
 
