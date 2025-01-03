@@ -48,20 +48,21 @@ export class UserService {
 
   async findAll(reqQuery: IQuery): Promise<TResponse<TUser>> {
     const skip = (reqQuery.page - 1) * reqQuery.limit;
-    const query = this.kysely.selectFrom('users').where(({ eb }) => {
-      if (!reqQuery.search || reqQuery.search?.length < 1) {
-        return eb('users.id', '>', 0);
-      }
-      return eb.or([
-        ...reqQuery.search.map((search, index) => {
-          return eb(
-            search as keyof User,
-            'like',
-            `%${reqQuery.searchVal[index]}%`,
-          );
-        }),
-      ]);
-    });
+    const query = this.kysely
+      .selectFrom('users')
+      .$if(reqQuery.search && reqQuery.search.length > 0, (qb) => {
+        return qb.where(({ eb }) => {
+          return eb.or([
+            ...reqQuery.search.map((search, index) => {
+              return eb(
+                search as keyof User,
+                'like',
+                `%${reqQuery.searchVal[index]}%`,
+              );
+            }),
+          ]);
+        });
+      });
 
     const { total } = await query
       .select(this.kysely.fn.countAll().as('total'))
