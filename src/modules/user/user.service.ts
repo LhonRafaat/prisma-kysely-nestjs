@@ -5,6 +5,8 @@ import { TUser } from './model/user.model';
 import * as bcrypt from 'bcrypt';
 import { OAuthRegisterDto } from '../auth/dto/oauth-register.dto';
 import { RegisterDto } from '../auth/dto/register.dto';
+import { IQuery, TResponse } from '../../common/helper/common-types';
+import { User } from '../../../prisma/generated/types';
 
 @Injectable()
 export class UserService {
@@ -44,27 +46,52 @@ export class UserService {
       .executeTakeFirst();
   }
 
-  async findAll(): Promise<TUser[]> {
-    const query = this.kysely
-      .selectFrom('users')
+  async findAll(reqQuery: IQuery): Promise<TResponse<TUser>> {
+    const skip = (reqQuery.page - 1) * reqQuery.limit;
+    const query = this.kysely.selectFrom('users').where(({ eb }) => {
+      if (!reqQuery.search || reqQuery.search?.length < 1) {
+        return eb('users.id', '>', 0);
+      }
+      return eb.or([
+        ...reqQuery.search.map((search, index) => {
+          return eb(
+            search as keyof User,
+            'like',
+            `%${reqQuery.searchVal[index]}%`,
+          );
+        }),
+      ]);
+    });
+
+    const { total } = await query
+      .select(this.kysely.fn.countAll().as('total'))
+      .executeTakeFirstOrThrow();
+
+    const users = await query
       .selectAll('users')
       .innerJoin('user_role', 'user_role.user_id', 'users.id')
       .select(({ eb }) => [
         eb.fn.agg<string>('group_concat', ['user_role.role']).as('roles'),
       ])
-      .groupBy('users.id');
-
-    const users = await query.execute();
-    return users.map((user) => {
-      return new TUser({
-        id: user.id,
-        email: user.email,
-        password: user.password,
-        roles: user.roles.split(','),
-        name: user.name,
-        refresh_token: user.refresh_token,
-      });
-    });
+      .groupBy('users.id')
+      .limit(+reqQuery.limit)
+      .offset(+skip)
+      .execute();
+    return new TResponse(
+      users.map((user) => {
+        return new TUser({
+          id: user.id,
+          email: user.email,
+          password: user.password,
+          roles: user.roles.split(','),
+          name: user.name,
+          refresh_token: user.refresh_token,
+        });
+      }),
+      Number(total),
+      +reqQuery.page,
+      +reqQuery.limit,
+    );
   }
 
   async findByEmail(email: string): Promise<TUser> {
@@ -93,7 +120,7 @@ export class UserService {
     });
   }
 
-  async findOne(id: number) {
+  async findOne(id: number): Promise<TUser> {
     const query = await this.kysely
       .selectFrom('users')
       .innerJoin('user_role', 'user_role.user_id', 'users.id')

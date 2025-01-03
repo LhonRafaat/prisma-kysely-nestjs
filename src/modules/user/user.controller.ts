@@ -1,22 +1,26 @@
 import {
   Controller,
   Get,
-  Post,
   Body,
   Patch,
   Param,
   Delete,
+  UseGuards,
+  Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { AccessTokenGuard } from '../../common/guards/jwt.guard';
+import { IQuery } from '../../common/helper/common-types';
 
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
-  findAll() {
-    return this.userService.findAll();
+  @UseGuards(AccessTokenGuard)
+  findAll(@Query() reqQuery: IQuery) {
+    return this.userService.findAll(reqQuery);
   }
 
   @Get(':id')
