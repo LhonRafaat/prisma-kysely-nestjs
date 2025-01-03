@@ -1,6 +1,7 @@
 import { Request } from 'express';
 import { ApiProperty, getSchemaPath } from '@nestjs/swagger';
 import { InferSubjects } from '@casl/ability';
+import { TUser } from '../../modules/user/model/user.model';
 
 export interface queryObj {
   limit: number;
@@ -8,7 +9,7 @@ export interface queryObj {
 
 export interface IRequest extends Request {
   queryObj: queryObj;
-  user: any;
+  user: TUser;
   pagination: {
     limit: number;
     page: number;
@@ -49,6 +50,12 @@ export const getResponseType = (Type: any) => {
 };
 
 export class TResponse<T> {
+  constructor(result: T[], count: number, page: number, limit: number) {
+    this.result = result;
+    this.count = count;
+    this.page = page;
+    this.limit = limit;
+  }
   @ApiProperty()
   result: T[];
 
@@ -67,6 +74,8 @@ export interface IQuery {
   page: number;
   sort: string;
   sortBy: string;
+  search?: string[];
+  searchVal?: string[];
 }
 
 class User {
