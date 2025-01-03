@@ -19,6 +19,7 @@ async function bootstrap() {
       whitelist: true, // set to true to throw an error if extra fields were sent by client
       forbidNonWhitelisted: true, // use with whitelist
       disableErrorMessages: false, // set to true if you do not want to send detailed error messages back to client
+      transform: true,
     }),
   );
   const config = new DocumentBuilder()
