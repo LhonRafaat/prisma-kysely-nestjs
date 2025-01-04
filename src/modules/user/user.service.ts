@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { KyselyDB } from '../../db/kysely/kysely.service';
 import { TUser } from './model/user.model';
@@ -143,8 +143,17 @@ export class UserService {
     });
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    const result = await this.kysely
+      .updateTable('users')
+      .set(updateUserDto)
+      .where('id', '=', id)
+      .executeTakeFirst();
+
+    if (result.numUpdatedRows < 1)
+      throw new BadRequestException('User update failed');
+
+    return { message: 'User updated successfully' };
   }
 
   async updateRefreshToken(id: number, refreshToken: string) {
@@ -154,7 +163,7 @@ export class UserService {
       .select('refresh_token')
       .executeTakeFirst();
 
-    if (!user) throw new NotFoundException("User doesn't exist");
+    if (!user) throw new BadRequestException("User doesn't exist");
 
     const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
 
